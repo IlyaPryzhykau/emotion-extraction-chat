@@ -4,6 +4,7 @@ Four tables: users, conversations, messages, emotions. Every emotion finding is
 grounded in a specific message so nothing is reported without support.
 """
 
+import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, Float, ForeignKey, String, Text, func
@@ -18,7 +19,7 @@ class User(Base):
     """An authenticated user. Owns conversations.
 
     Attributes:
-        id: Surrogate primary key.
+        id: Primary key — UUIDv4, generated app-side.
         email: Login identifier; unique, stored normalized (trimmed + lowercased).
         password_hash: bcrypt hash of the password; the plaintext is never stored.
         created_at: When the account was created.
@@ -27,7 +28,7 @@ class User(Base):
 
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(
@@ -43,7 +44,7 @@ class Conversation(Base):
     """A single "talk about your day" session for one user.
 
     Attributes:
-        id: Surrogate primary key.
+        id: Primary key — UUIDv4, generated app-side.
         user_id: Owning user; conversations are deleted with their user.
         status: ACTIVE while chatting; ANALYZED once the final report exists.
         started_at: When the session began.
@@ -55,8 +56,8 @@ class Conversation(Base):
 
     __tablename__ = "conversations"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey(User.id, ondelete="CASCADE"), index=True
     )
     status: Mapped[ConversationStatus] = mapped_column(
@@ -83,7 +84,7 @@ class Message(Base):
     """One turn in a conversation, from the user or the assistant.
 
     Attributes:
-        id: Surrogate primary key.
+        id: Primary key — UUIDv4, generated app-side.
         conversation_id: Conversation this message belongs to.
         role: Who wrote it — USER or ASSISTANT.
         content: The message text.
@@ -93,8 +94,8 @@ class Message(Base):
 
     __tablename__ = "messages"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    conversation_id: Mapped[int] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    conversation_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey(Conversation.id, ondelete="CASCADE"), index=True
     )
     role: Mapped[MessageRole] = mapped_column(pg_enum(MessageRole, "message_role"))
@@ -113,7 +114,7 @@ class Emotion(Base):
     points at the message it came from, so nothing is reported without support.
 
     Attributes:
-        id: Surrogate primary key.
+        id: Primary key — UUIDv4, generated app-side.
         conversation_id: Conversation the finding came from.
         message_id: Specific message that evidences the finding; NULL if it reflects
             the conversation as a whole rather than a single line.
@@ -128,11 +129,11 @@ class Emotion(Base):
 
     __tablename__ = "emotions"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    conversation_id: Mapped[int] = mapped_column(
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    conversation_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey(Conversation.id, ondelete="CASCADE"), index=True
     )
-    message_id: Mapped[int | None] = mapped_column(
+    message_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey(Message.id, ondelete="SET NULL")
     )
     label: Mapped[EmotionLabel] = mapped_column(pg_enum(EmotionLabel, "emotion_label"))

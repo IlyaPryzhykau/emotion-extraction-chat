@@ -26,11 +26,12 @@ class Settings(BaseSettings):
     )
 
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/emotions"
-    # All app tables/enums live in this Postgres schema, not public.
-    db_schema: str = "app"
+    # All app tables/enums live in this Postgres schema, not public. Named after the
+    # project (underscored — hyphens would force quoting everywhere).
+    db_schema: str = "emotion_extraction_chat"
 
     openai_api_key: str = ""
-    # Cheap/fast model: drives the conversation and the lightweight live classifier.
+    # Cheap/fast model: drives the streamed conversation.
     chat_model: str = "gpt-5.4-mini"
     # Strong model: used once per session for the authoritative extraction.
     extraction_model: str = "gpt-5.5"
