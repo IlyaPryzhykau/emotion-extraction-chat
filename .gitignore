@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Env / secrets
+.env
+*.env
+!.env.example
+
+# Node
+node_modules/
+dist/
+
+# Misc
+.DS_Store
+*.log
+
+# Internal working docs (not part of the deliverable repo)
+CLAUDE.md
+PLAN.md
+REVIEW.md
+
+# Local editor / tooling
+.claude/
+.idea/
+.vscode/
