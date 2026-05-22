@@ -75,6 +75,17 @@ the living record; its content is mirrored into the README on submission.
   verification (cut). We accept the signup leak deliberately; the real fix ships with
   verification — a "with another week" item.
 
+- **Session via signed httpOnly cookie, not JWT/Bearer.**
+  *Why:* the frontend and API sit behind one Caddy on a single origin, so the browser
+  carries the cookie automatically and JS can't read it (XSS-resistant); `SameSite=Lax`
+  covers the common CSRF case. A Bearer token in the body/localStorage would be more
+  code and weaker (XSS-stealable) for no benefit at one origin. JWT earns its place
+  with non-browser clients or stateless multi-service auth — not our setup.
+  *With another week:* JWT + refresh/rotation (sliding sessions), and a
+  change-password endpoint with "log out everywhere" via a per-user `token_version`
+  (security stamp) checked on each request — the clean way to revoke our otherwise
+  stateless sessions.
+
 - **Multi-user** with per-user session history.
   *Why:* shows schema/scoping thinking and makes the trends story (the real product
   value) possible.
