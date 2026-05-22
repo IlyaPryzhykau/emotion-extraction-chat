@@ -25,7 +25,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5439/emotions"
+    database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/emotions"
     # All app tables/enums live in this Postgres schema, not public. Named after the
     # project (underscored — hyphens would force quoting everywhere).
     db_schema: str = "emotion_extraction_chat"
