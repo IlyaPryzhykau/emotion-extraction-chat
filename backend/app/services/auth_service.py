@@ -16,6 +16,11 @@ class EmailAlreadyExists(Exception):
     """Raised when signing up with an email that is already registered."""
 
 
+# Verified against when the email is unknown, so a missing user costs the same
+# bcrypt work as a wrong password — no user enumeration via response timing.
+_DUMMY_HASH = hash_password("constant-time-placeholder")
+
+
 def create_user(db: Session, email: str, password: str) -> User:
     """Create and persist a new user.
 
@@ -49,6 +54,9 @@ def authenticate(db: Session, email: str, password: str) -> User | None:
     """Return the user if the email/password are valid, else None."""
     user = db.scalar(select(User).where(User.email == email))
     if user is None:
+        # Spend the same time as a real verify so timing doesn't reveal whether
+        # the email exists.
+        verify_password(password, _DUMMY_HASH)
         return None
     if not verify_password(password, user.password_hash):
         return None

@@ -68,6 +68,13 @@ the living record; its content is mirrored into the README on submission.
   OAuth) is straightforward to add and is a "with another week" item; we left it out
   rather than half-build it.
 
+- **Login is constant-time w.r.t. account existence** (a missing email still runs a
+  bcrypt verify against a dummy hash), so timing can't be used to enumerate accounts.
+  **Signup still reveals existence** (a taken email returns 409) — closing that needs
+  the "always respond the same, verify via email" flow, which requires email
+  verification (cut). We accept the signup leak deliberately; the real fix ships with
+  verification — a "with another week" item.
+
 - **Multi-user** with per-user session history.
   *Why:* shows schema/scoping thinking and makes the trends story (the real product
   value) possible.
