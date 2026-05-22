@@ -11,6 +11,9 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
 from app.core.config import settings
 
+# Name of the cookie that carries the signed session token.
+SESSION_COOKIE = "session"
+
 # The salt namespaces this signature to session cookies; it is not a password
 # salt (bcrypt salts each hash itself).
 _serializer = URLSafeTimedSerializer(settings.session_secret, salt="session")
