@@ -1,0 +1,39 @@
+# PROD stack: Postgres + backend with code baked into the image. Self-contained.
+#   Run:  docker compose -f docker-compose.prod.yml up -d --build
+# No source mount and no --reload; the image is self-sufficient and portable to
+# the server. (Caddy + frontend are added in a later stage.)
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: emotions
+    # No host port published: the database is reached only over the internal
+    # network, never exposed publicly on the server.
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d emotions"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    env_file:
+      - ../backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/emotions
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+
+volumes:
+  db_data:

@@ -1,0 +1,50 @@
+# DEV stack: Postgres + backend with hot reload. Self-contained.
+#   Run:  docker compose up --build
+# The source is bind-mounted and uvicorn runs with --reload, so local code
+# changes apply without a rebuild. Production is a separate, standalone file:
+# docker-compose.prod.yml.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: emotions
+    ports:
+      # host 5439 -> container 5432, so DBeaver connects on localhost:5439
+      # without clashing with any local Postgres on 5432.
+      - "5439:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d emotions"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    env_file:
+      # Brings in OPENAI_API_KEY, model names, SESSION_SECRET, DB_SCHEMA.
+      - ../backend/.env
+    environment:
+      # Override the DB host: inside the network the database is "db", not localhost.
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/emotions
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      # Live-mount the source for hot reload; shadow the host .venv so it neither
+      # leaks in nor gets watched.
+      - ../backend:/app
+      - /app/.venv
+    # Migrations still run first (entrypoint), then uvicorn with reload.
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  db_data:

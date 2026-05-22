@@ -80,11 +80,18 @@ the living record; its content is mirrored into the README on submission.
   *Why:* matches a realistic production stack and the trends/history use case; a
   dedicated schema keeps ownership explicit.
 
-- **Single backend instance.** The Compose stack runs several containers (Caddy,
-  the `app` backend, Postgres + a data volume), but only the `app` service runs the
-  startup DDL (`CREATE SCHEMA IF NOT EXISTS` + `create_all`), and we run a single
-  replica of it. That is race-free; scaling the backend to multiple replicas would
-  need migrations (Alembic) run as a separate step instead of on-startup DDL — a
-  "with another week" item.
-  *Why:* one backend replica is plenty for the case study; leader election or a
-  migration job would be over-engineering here.
+- **UUIDv4 primary keys, generated app-side** (native Postgres `UUID` type), not
+  auto-increment integers.
+  *Why:* IDs appear in URLs, so non-enumerable keys are a sound production default;
+  per-user authorization already blocks cross-user access, so this is
+  defense-in-depth, not the only guard. Chose v4 for zero dependencies (stdlib
+  `uuid.uuid4`); UUIDv7 (time-ordered, better B-tree index locality) is the
+  refinement once write volume matters — a "with another week" item.
+
+- **Schema is managed by Alembic migrations**, not by the app at startup. Migrations
+  run as an explicit step (`alembic upgrade head`) before the app serves traffic; the
+  app process itself performs no DDL.
+  *Why:* versioned, reviewable schema changes and a clean upgrade/downgrade path —
+  the production-correct approach, and it sidesteps any startup race if the backend
+  is ever scaled to multiple replicas. (The downgrade also drops the ENUM types,
+  which Postgres otherwise leaves behind after a table drop.)
