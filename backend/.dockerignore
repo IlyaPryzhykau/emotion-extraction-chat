@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# Never bake secrets into the image; env is injected at runtime by compose.
+.env
