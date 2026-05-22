@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     # MUST be overridden in production; used to sign the session cookie.
     session_secret: str = "dev-only-insecure-secret-change-me"
     session_max_age: int = 60 * 60 * 24 * 14  # seconds (14 days)
+    # Send the session cookie only over HTTPS. False for local http dev; set
+    # True in production (served behind Caddy over TLS).
+    cookie_secure: bool = False
 
     # Conversation guardrails — cost & UX (PLAN §5).
     max_message_chars: int = 2000

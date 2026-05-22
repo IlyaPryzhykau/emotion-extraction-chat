@@ -19,7 +19,7 @@ negativity, and a separate analyst pass turns the transcript into the report. Se
 - [x] Backend foundation — config, DB models, emotion taxonomy
 - [x] UUID keys + Alembic migrations
 - [x] Dockerized dev/prod stacks (db + app)
-- [ ] Auth (signup/login, sessions)
+- [x] Auth (signup/login/logout, session cookie) + tests
 - [ ] Chat with streaming + conversationalist
 - [ ] End-of-session analysis + emotion report
 - [ ] Evaluation harness
@@ -111,6 +111,20 @@ Tip: `python scripts/list_models.py` lists the model IDs your key can actually u
 alembic upgrade head            # apply migrations
 alembic revision --autogenerate -m "message"   # create a new migration
 ```
+
+## Tests
+
+Backend tests use pytest against a real Postgres (each test runs in a transaction
+that is rolled back, so nothing persists). With the dev stack running:
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest
+```
+
+The test DB defaults to the dev Postgres on `localhost:5439`; override with
+`TEST_DATABASE_URL` if needed.
 
 ## Evaluation
 

@@ -59,9 +59,32 @@ the living record; its content is mirrored into the README on submission.
 
 ## Auth & scope
 
-- **Minimal auth:** signup/login, bcrypt hash, signed httpOnly session cookie.
-  **No password recovery, no email verification.**
-  *Why:* out of scope for a 2-day case study; auth is explicitly not what is scored.
+- **Minimal auth:** signup/login/logout, bcrypt hash, one signed httpOnly session
+  cookie with an absolute 14-day expiry. **No refresh/rotation, no password
+  recovery, no email verification, no OAuth/2FA.**
+  *Why:* none of this earns its place in a 2-day build where auth is explicitly not
+  scored — a single signed session is enough to scope data per user and demo the
+  product. All of it (refresh tokens / sliding sessions, recovery, verification,
+  OAuth) is straightforward to add and is a "with another week" item; we left it out
+  rather than half-build it.
+
+- **Login is constant-time w.r.t. account existence** (a missing email still runs a
+  bcrypt verify against a dummy hash), so timing can't be used to enumerate accounts.
+  **Signup still reveals existence** (a taken email returns 409) — closing that needs
+  the "always respond the same, verify via email" flow, which requires email
+  verification (cut). We accept the signup leak deliberately; the real fix ships with
+  verification — a "with another week" item.
+
+- **Session via signed httpOnly cookie, not JWT/Bearer.**
+  *Why:* the frontend and API sit behind one Caddy on a single origin, so the browser
+  carries the cookie automatically and JS can't read it (XSS-resistant); `SameSite=Lax`
+  covers the common CSRF case. A Bearer token in the body/localStorage would be more
+  code and weaker (XSS-stealable) for no benefit at one origin. JWT earns its place
+  with non-browser clients or stateless multi-service auth — not our setup.
+  *With another week:* JWT + refresh/rotation (sliding sessions), and a
+  change-password endpoint with "log out everywhere" via a per-user `token_version`
+  (security stamp) checked on each request — the clean way to revoke our otherwise
+  stateless sessions.
 
 - **Multi-user** with per-user session history.
   *Why:* shows schema/scoping thinking and makes the trends story (the real product
