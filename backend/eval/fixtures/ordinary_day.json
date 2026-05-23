@@ -1,0 +1,10 @@
+{
+  "name": "ordinary_day",
+  "transcript": [
+    {"role": "assistant", "content": "How'd today go?"},
+    {"role": "user", "content": "pretty ordinary, ran a few errands and watched a film in the evening"},
+    {"role": "assistant", "content": "Nice — anything stand out?"},
+    {"role": "user", "content": "not really, just a calm easy day. it was good to relax"}
+  ],
+  "expected_labels": []
+}

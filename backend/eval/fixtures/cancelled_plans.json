@@ -1,0 +1,10 @@
+{
+  "name": "cancelled_plans",
+  "transcript": [
+    {"role": "assistant", "content": "How was your day?"},
+    {"role": "user", "content": "meh. I'd been looking forward to dinner with my sister all week and she cancelled last minute"},
+    {"role": "assistant", "content": "Oh, after looking forward to it all week. How did that land?"},
+    {"role": "user", "content": "really let down, I'd built the whole evening around it"}
+  ],
+  "expected_labels": ["disappointment"]
+}

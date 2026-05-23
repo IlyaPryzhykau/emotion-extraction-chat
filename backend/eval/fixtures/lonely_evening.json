@@ -1,0 +1,10 @@
+{
+  "name": "lonely_evening",
+  "transcript": [
+    {"role": "assistant", "content": "How was your evening?"},
+    {"role": "user", "content": "quiet. everyone had plans and I ended up on my own again"},
+    {"role": "assistant", "content": "What was that like for you?"},
+    {"role": "user", "content": "kind of lonely honestly, like nobody really thinks to include me"}
+  ],
+  "expected_labels": ["loneliness"]
+}
