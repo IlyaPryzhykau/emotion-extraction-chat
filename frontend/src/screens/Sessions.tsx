@@ -9,7 +9,8 @@ function dotClass(label: EmotionLabel): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  // Fixed en-US locale — the app is English-only, so don't follow the OS locale.
+  return new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 }
 
 export function Sessions() {
