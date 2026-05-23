@@ -10,6 +10,7 @@ from collections.abc import Iterator
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
+from openai import OpenAIError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -55,7 +56,7 @@ def get_conversation(
     return conversation
 
 
-def _sse(payload: dict) -> str:
+def _sse(payload: dict[str, object]) -> str:
     """Format one Server-Sent Event line (JSON-encoded so newlines are safe)."""
     return f"data: {json.dumps(payload)}\n\n"
 
@@ -97,14 +98,17 @@ def post_message(
     chat_messages = conversation_service.build_chat_messages(db, conversation, wind_down)
 
     def event_stream() -> Iterator[str]:
+        # The SSE response is already 200 with headers flushed by the time tokens
+        # stream, so failures are reported as an {"error": ...} event, not a status
+        # code — the client must inspect events. We catch only OpenAI errors so a
+        # genuine bug still surfaces loudly rather than masquerading as "unavailable".
         parts: list[str] = []
         try:
             for delta in stream_chat(chat_messages):
                 parts.append(delta)
                 yield _sse({"delta": delta})
-        except Exception:
-            # External LLM/network failure: tell the client cleanly, don't 500
-            # mid-stream. The user's message is already saved, so they can retry.
+        except OpenAIError:
+            # The user's message is already saved, so they can retry.
             yield _sse({"error": "The assistant is unavailable right now."})
             return
         assistant = conversation_service.add_message(

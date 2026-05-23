@@ -1,4 +1,4 @@
-"""Pydantic request/response models for the auth API.
+"""Pydantic request/response models for the API (auth and conversations).
 
 Kept separate from the ORM models: these define the HTTP contract (and input
 validation) the frontend mirrors, while ``db/models.py`` defines persistence.
