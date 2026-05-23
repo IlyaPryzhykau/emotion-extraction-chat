@@ -105,7 +105,7 @@ def main() -> None:
             f"{r.name:<18}"
             f"{', '.join(sorted(r.expected)) or '—':<22}"
             f"{', '.join(sorted(r.predicted)) or '—':<22}"
-            f"{r.findings_grounded}/{r.findings_total:>7}"
+            f"{f'{r.findings_grounded}/{r.findings_total}':>9}"
         )
 
     print("-" * 71)
