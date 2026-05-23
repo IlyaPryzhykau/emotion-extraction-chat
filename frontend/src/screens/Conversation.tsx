@@ -41,6 +41,7 @@ function Chat({ detail, onAnalyzed }: { detail: ConversationDetail; onAnalyzed: 
   const [ending, setEnding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const streamEnd = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     streamEnd.current?.scrollIntoView({ behavior: "smooth" });
@@ -76,6 +77,7 @@ function Chat({ detail, onAnalyzed }: { detail: ConversationDetail; onAnalyzed: 
         setSending(false);
       },
     });
+    inputRef.current?.focus(); // keep the cursor in the composer for the next line
   };
 
   const endSession = async () => {
@@ -139,12 +141,14 @@ function Chat({ detail, onAnalyzed }: { detail: ConversationDetail; onAnalyzed: 
               }}
             >
               <input
+                ref={inputRef}
                 className="composer-input"
                 placeholder="Type a message…"
                 aria-label="Message"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                disabled={sending || ending}
+                disabled={ending}
+                autoFocus
               />
               <button className="send-btn" type="submit" aria-label="Send" disabled={sending || ending || !input.trim()}>
                 ↑
