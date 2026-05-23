@@ -7,10 +7,13 @@ that into a 404, so we never reveal that someone else's conversation exists).
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.db.models import Conversation, User
+from app.db.enums import MessageRole
+from app.db.models import Conversation, Message, User
+from app.llm.client import ChatMessage
+from app.llm.prompts import CONVERSATIONALIST_SYSTEM, WIND_DOWN_NUDGE
 
 
 def create_conversation(db: Session, user: User) -> Conversation:
@@ -39,3 +42,45 @@ def get_conversation(
         Conversation.id == conversation_id, Conversation.user_id == user.id
     )
     return db.scalar(stmt)
+
+
+def count_user_turns(db: Session, conversation: Conversation) -> int:
+    """How many messages the user has sent in this conversation."""
+    stmt = select(func.count()).where(
+        Message.conversation_id == conversation.id, Message.role == MessageRole.USER
+    )
+    return db.scalar(stmt) or 0
+
+
+def add_message(
+    db: Session, conversation: Conversation, role: MessageRole, content: str
+) -> Message:
+    """Persist one message in a conversation."""
+    message = Message(conversation_id=conversation.id, role=role, content=content)
+    db.add(message)
+    db.commit()
+    return message
+
+
+def build_chat_messages(
+    db: Session, conversation: Conversation, wind_down: bool
+) -> list[ChatMessage]:
+    """Assemble the OpenAI message list: system prompt + full history.
+
+    Reads the transcript fresh (ordered by creation time) so the just-saved user
+    turn is included. ``wind_down`` adds a nudge to guide a gentle close.
+    """
+    messages: list[ChatMessage] = [
+        {"role": "system", "content": CONVERSATIONALIST_SYSTEM}
+    ]
+    if wind_down:
+        messages.append({"role": "system", "content": WIND_DOWN_NUDGE})
+
+    stmt = (
+        select(Message)
+        .where(Message.conversation_id == conversation.id)
+        .order_by(Message.created_at)
+    )
+    for message in db.scalars(stmt):
+        messages.append({"role": message.role.value, "content": message.content})
+    return messages

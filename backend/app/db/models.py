@@ -50,7 +50,7 @@ class Conversation(Base):
         started_at: When the session began.
         ended_at: When the user ended the session and analysis ran; NULL while active.
         user: The owning user.
-        messages: Turns in this conversation, ordered by id.
+        messages: Turns in this conversation, ordered by creation time.
         emotions: Findings extracted from this conversation.
     """
 
@@ -73,7 +73,9 @@ class Conversation(Base):
     messages: Mapped[list["Message"]] = relationship(
         back_populates="conversation",
         cascade="all, delete-orphan",
-        order_by="Message.id",
+        # UUID PKs aren't ordered; messages are sequenced by creation time (each is
+        # committed in its own transaction, so timestamps are distinct).
+        order_by="Message.created_at",
     )
     emotions: Mapped[list["Emotion"]] = relationship(
         back_populates="conversation", cascade="all, delete-orphan"
