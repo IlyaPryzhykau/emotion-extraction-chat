@@ -133,17 +133,24 @@ reports two things:
 
 - **Grounding (model-free):** every finding's `evidence` must appear verbatim in a
   user message — the hard guard against hallucinated quotes.
-- **Label precision / recall** (after the confidence floor) vs. expected labels.
+- **Label micro & macro F1** (after the confidence floor) vs. expected labels.
+- **Abstention rate:** how many empty-expected fixtures correctly yield no findings.
 
 ```bash
 cd backend && python -m eval.run_eval     # only the extractor calls the API
 ```
 
-Current run over 5 fixtures (including a neutral-day control that should yield
-nothing): **precision 1.00, recall 1.00, grounding 4/4 verbatim.** This validates
-the harness and that the extractor handles clear cases — including correctly
-abstaining on a calm day — rather than proving general accuracy; a larger,
-human-labeled set with borderline cases is a "with another week" item.
+The 16 fixtures are deliberately CheckList-style: clear single-emotion cases, a
+neutral control, **adversarial empty-expected probes** for over-attribution
+(third-person emotion, past-and-resolved, negation, media subject, physical
+fatigue, hypotheticals), **confusion pairs** (anxiety/fear, guilt/shame,
+anger/frustration, sadness/disappointment), and a multi-label case.
+
+Current run: **micro F1 0.95, macro F1 0.95, abstention 6/7, grounding 11/11.**
+The one miss is honest signal — a resolved past annoyance was scored as
+frustration — which is exactly what the hard fixtures are there to surface. This
+is a small hand-written suite (validation, not a general-accuracy claim); a larger
+human-labeled set is a "with another week" item.
 
 ## Deployment
 
