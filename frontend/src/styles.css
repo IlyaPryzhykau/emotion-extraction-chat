@@ -1,0 +1,167 @@
+/* Design system ported from the mockup. Calm, warm, muted-sage. */
+
+:root {
+  --bg-page: #ece7dd;
+  --bg-app: #faf7f2;
+  --bg-card: #ffffff;
+  --bg-soft: #f1ede5;
+  --bg-soft-2: #e7e1d6;
+  --line: #e3ddd1;
+  --line-strong: #d4ccbc;
+
+  --ink-1: #2a2724;
+  --ink-2: #5a544c;
+  --ink-3: #8a8378;
+  --ink-4: #b2aa9d;
+
+  --accent: #6f8a72;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3ebe2;
+  --accent-deep: #4f6753;
+
+  --danger: #b0685f;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  --shadow-card: 0 1px 2px rgba(42, 39, 36, 0.04), 0 4px 14px rgba(42, 39, 36, 0.05);
+  --shadow-soft: 0 1px 2px rgba(42, 39, 36, 0.03);
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg-page);
+  color: var(--ink-1);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* ---------- Emotion dot palette (mapped to our 10-label taxonomy) ---------- */
+.emotion-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  display: inline-block;
+  flex: 0 0 auto;
+}
+.dot-sadness { background: #7a8aa3; }
+.dot-anxiety { background: #a89065; }
+.dot-anger { background: #b0685f; }
+.dot-frustration { background: #b07a6a; }
+.dot-fear { background: #8a7a9b; }
+.dot-guilt { background: #9a8f74; }
+.dot-shame { background: #9c7a8a; }
+.dot-loneliness { background: #6f7f95; }
+.dot-disappointment { background: #8a8c9b; }
+.dot-stress-overwhelm { background: #9c8a6f; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  appearance: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 120ms ease, color 120ms ease;
+}
+.btn:disabled { opacity: 0.55; cursor: default; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-deep); }
+.btn-secondary { background: var(--bg-card); color: var(--ink-1); border: 1px solid var(--line-strong); }
+.btn-secondary:hover:not(:disabled) { background: var(--bg-soft); }
+.btn-ghost { background: transparent; color: var(--ink-2); padding: 8px 12px; }
+.btn-ghost:hover:not(:disabled) { color: var(--ink-1); }
+.btn-block { width: 100%; }
+
+/* ---------- Inputs ---------- */
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink-1);
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.input::placeholder { color: var(--ink-4); }
+.input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.field-label { display: block; font-size: 13px; color: var(--ink-2); margin-bottom: 8px; }
+
+/* ---------- App surface + header ---------- */
+.frame {
+  background: var(--bg-app);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-app);
+}
+.brand {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink-1);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+}
+.header-link {
+  font-size: 13px;
+  color: var(--ink-3);
+  text-decoration: none;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+.header-link:hover { color: var(--ink-2); border-bottom-color: var(--line-strong); }
+
+/* ---------- Misc shared ---------- */
+.error-text { color: var(--danger); font-size: 13px; margin: 4px 2px 0; }
+.muted { color: var(--ink-3); }
