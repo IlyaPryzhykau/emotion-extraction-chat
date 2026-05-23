@@ -11,9 +11,10 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.enums import MessageRole
-from app.db.models import Conversation, Message, User
+from app.db.models import Conversation, Emotion, Message, User
 from app.llm.client import ChatMessage
 from app.llm.prompts import CONVERSATIONALIST_SYSTEM, WIND_DOWN_NUDGE
+from app.llm.taxonomy import EmotionLabel
 
 
 def create_conversation(db: Session, user: User) -> Conversation:
@@ -24,14 +25,38 @@ def create_conversation(db: Session, user: User) -> Conversation:
     return conversation
 
 
-def list_conversations(db: Session, user: User) -> list[Conversation]:
-    """Return the user's conversations, most recent first."""
-    stmt = (
-        select(Conversation)
-        .where(Conversation.user_id == user.id)
-        .order_by(Conversation.started_at.desc())
+def list_conversations_with_labels(
+    db: Session, user: User
+) -> list[tuple[Conversation, list[EmotionLabel]]]:
+    """Return the user's conversations (most recent first), each with its distinct
+    extracted emotion labels.
+
+    Two queries total regardless of count: one for the conversations, one for all
+    their emotions — labels are then grouped in Python (avoids an N+1).
+    """
+    conversations = list(
+        db.scalars(
+            select(Conversation)
+            .where(Conversation.user_id == user.id)
+            .order_by(Conversation.started_at.desc())
+        )
     )
-    return list(db.scalars(stmt))
+    if not conversations:
+        return []
+
+    rows = db.execute(
+        select(Emotion.conversation_id, Emotion.label).where(
+            Emotion.conversation_id.in_([c.id for c in conversations])
+        )
+    ).all()
+
+    labels_by_conversation: dict[uuid.UUID, list[EmotionLabel]] = {}
+    for conversation_id, label in rows:
+        bucket = labels_by_conversation.setdefault(conversation_id, [])
+        if label not in bucket:  # distinct, preserving first-seen order
+            bucket.append(label)
+
+    return [(c, labels_by_conversation.get(c.id, [])) for c in conversations]
 
 
 def get_conversation(
