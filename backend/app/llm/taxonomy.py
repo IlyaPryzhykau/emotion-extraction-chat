@@ -47,14 +47,44 @@ class Intensity(str, Enum):
 # emotion typically surfaces when someone talks about their day; they are guidance
 # for the *analyst*, never shown to the conversationalist.
 LABEL_DESCRIPTIONS: dict[EmotionLabel, str] = {
-    EmotionLabel.SADNESS: "low mood, grief, feeling down or tearful",
-    EmotionLabel.ANXIETY: "worry about the future, nervousness, unease, racing thoughts",
-    EmotionLabel.ANGER: "irritation or hostility directed at someone or something",
-    EmotionLabel.FRUSTRATION: "being blocked, things not working, repeated annoyance",
-    EmotionLabel.FEAR: "acute threat or dread about a specific thing",
-    EmotionLabel.GUILT: "feeling responsible for harm or a wrongdoing",
-    EmotionLabel.SHAME: "feeling bad about oneself, inadequacy, embarrassment",
-    EmotionLabel.LONELINESS: "feeling disconnected, isolated, or unsupported",
-    EmotionLabel.DISAPPOINTMENT: "unmet expectations, being let down",
-    EmotionLabel.STRESS: "feeling overwhelmed, under pressure, stretched too thin",
+    EmotionLabel.SADNESS: (
+        "low mood, sorrow, or grief about a loss or how things are; passive, not "
+        "goal-blocked (vs disappointment, which is a specific unmet expectation)"
+    ),
+    EmotionLabel.ANXIETY: (
+        "worry or unease about an uncertain or anticipated future; diffuse, with no "
+        "single resolvable obstacle (vs fear: no concrete present threat; vs stress: "
+        "about uncertainty, not current workload)"
+    ),
+    EmotionLabel.ANGER: (
+        "hostility or indignation toward a person or situation seen as unfair or "
+        "wrong; involves blame (vs frustration, which is impersonal blockage)"
+    ),
+    EmotionLabel.FRUSTRATION: (
+        "annoyance at being blocked, delayed, or things repeatedly not working; an "
+        "obstructed goal with no clear wrongdoer to blame"
+    ),
+    EmotionLabel.FEAR: (
+        "dread of a specific, identifiable, present or imminent threat (reserve for "
+        "concrete threats; default diffuse worry to anxiety)"
+    ),
+    EmotionLabel.GUILT: (
+        "distress over a specific act they believe was wrong or caused harm — "
+        "'I did a bad thing'"
+    ),
+    EmotionLabel.SHAME: (
+        "feeling the self is inadequate, flawed, or exposed — 'I am bad / not good "
+        "enough'; about identity, not a single act"
+    ),
+    EmotionLabel.LONELINESS: (
+        "feeling disconnected, isolated, unsupported, or that no one understands them"
+    ),
+    EmotionLabel.DISAPPOINTMENT: (
+        "a specific hope, expectation, or outcome went unmet; being let down by an "
+        "event, person, or oneself"
+    ),
+    EmotionLabel.STRESS: (
+        "feeling under pressure or stretched thin — current demands exceed capacity "
+        "right now (vs anxiety, which is about future uncertainty)"
+    ),
 }

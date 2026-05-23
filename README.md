@@ -21,7 +21,7 @@ negativity, and a separate analyst pass turns the transcript into the report. Se
 - [x] Dockerized dev/prod stacks (db + app)
 - [x] Auth (signup/login/logout, session cookie) + tests
 - [x] Chat: conversations + streaming (SSE) conversationalist + tests
-- [ ] End-of-session analysis + emotion report
+- [x] End-of-session analysis: structured grounded emotion extraction + tests
 - [ ] Evaluation harness
 - [ ] Frontend (login / chat / report / history)
 - [ ] Public deployment

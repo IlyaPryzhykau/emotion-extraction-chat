@@ -40,8 +40,11 @@ the living record; its content is mirrored into the README on submission.
   a single value — so we don't add one (YAGNI/KISS). A future read-out is a "with
   another week" item and would introduce the column then, when it earns its place.
 
-- **Every extracted finding must be grounded** in a verbatim quote + message id, and
-  the eval harness rejects evidence that does not appear in the transcript.
+- **Every extracted finding must be grounded** in a verbatim quote, and the eval
+  harness rejects evidence that does not appear in the transcript. We don't store a
+  message-id link: it would be an always-NULL column (we don't search the transcript
+  to resolve one in the write path), so by YAGNI it isn't added — the quote itself is
+  the grounding.
   *Why:* "approximate correctness is not acceptable" → no ungrounded/hallucinated
   emotions.
 

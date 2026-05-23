@@ -12,6 +12,7 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
 
 from app.core.config import settings
 from app.db.enums import ConversationStatus, MessageRole
+from app.llm.taxonomy import EmotionLabel, Intensity
 
 
 def _normalize_email(value: str) -> str:
@@ -83,3 +84,17 @@ class MessageCreate(BaseModel):
     """Payload to post a user message into a conversation."""
 
     content: str = Field(min_length=1, max_length=settings.max_message_chars)
+
+
+class EmotionOut(BaseModel):
+    """A single extracted negative-emotion finding (the report item)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    label: EmotionLabel
+    intensity: Intensity
+    trigger: str
+    evidence: str
+    confidence: float
+    created_at: datetime
