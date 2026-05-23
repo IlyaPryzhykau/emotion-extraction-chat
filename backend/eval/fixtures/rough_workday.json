@@ -1,0 +1,10 @@
+{
+  "name": "rough_workday",
+  "transcript": [
+    {"role": "assistant", "content": "Hey, how did today go?"},
+    {"role": "user", "content": "honestly pretty rough, work was nonstop and I felt stretched too thin all day"},
+    {"role": "assistant", "content": "That sounds like a lot to carry. What made it so relentless?"},
+    {"role": "user", "content": "my manager kept piling on tasks and there was just no way to get through all of it"}
+  ],
+  "expected_labels": ["stress/overwhelm"]
+}

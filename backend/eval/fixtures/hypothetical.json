@@ -1,0 +1,10 @@
+{
+  "name": "hypothetical",
+  "transcript": [
+    {"role": "assistant", "content": "Anything on your mind today?"},
+    {"role": "user", "content": "not really. I mean if the funding falls through next month I guess I'd be stressed, but nothing's decided yet"},
+    {"role": "assistant", "content": "Fair enough. How are things right now?"},
+    {"role": "user", "content": "honestly fine, just business as usual today"}
+  ],
+  "expected_labels": []
+}

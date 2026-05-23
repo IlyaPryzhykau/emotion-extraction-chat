@@ -1,0 +1,10 @@
+{
+  "name": "disappointment_not_sadness",
+  "transcript": [
+    {"role": "assistant", "content": "How was today?"},
+    {"role": "user", "content": "kind of a letdown. I was sure I'd get the promotion this round and I didn't"},
+    {"role": "assistant", "content": "After expecting it, that's a lot to take in. How are you sitting with it?"},
+    {"role": "user", "content": "I really thought it was mine this time, so it stings that it didn't happen"}
+  ],
+  "expected_labels": ["disappointment"]
+}

@@ -22,7 +22,7 @@ negativity, and a separate analyst pass turns the transcript into the report. Se
 - [x] Auth (signup/login/logout, session cookie) + tests
 - [x] Chat: conversations + streaming (SSE) conversationalist + tests
 - [x] End-of-session analysis: structured grounded emotion extraction + tests
-- [ ] Evaluation harness
+- [x] Evaluation harness (grounding check + label precision/recall on fixtures)
 - [ ] Frontend (login / chat / report / history)
 - [ ] Public deployment
 
@@ -128,9 +128,29 @@ The test DB defaults to the dev Postgres on `localhost:5439`; override with
 
 ## Evaluation
 
-_(coming)_ A small harness checks that every extracted emotion's evidence quote
-appears verbatim in the transcript, plus label precision/recall on hand-written
-fixtures.
+`backend/eval/run_eval.py` runs the real extractor over hand-written fixtures and
+reports two things:
+
+- **Grounding (model-free):** every finding's `evidence` must appear verbatim in a
+  user message — the hard guard against hallucinated quotes.
+- **Label micro & macro F1** (after the confidence floor) vs. expected labels.
+- **Abstention rate:** how many empty-expected fixtures correctly yield no findings.
+
+```bash
+cd backend && python -m eval.run_eval     # only the extractor calls the API
+```
+
+The 16 fixtures are deliberately CheckList-style: clear single-emotion cases, a
+neutral control, **adversarial empty-expected probes** for over-attribution
+(third-person emotion, past-and-resolved, negation, media subject, physical
+fatigue, hypotheticals), **confusion pairs** (anxiety/fear, guilt/shame,
+anger/frustration, sadness/disappointment), and a multi-label case.
+
+Current run: **micro F1 0.95, macro F1 0.95, abstention 6/7, grounding 11/11.**
+The one miss is honest signal — a resolved past annoyance was scored as
+frustration — which is exactly what the hard fixtures are there to surface. This
+is a small hand-written suite (validation, not a general-accuracy claim); a larger
+human-labeled set is a "with another week" item.
 
 ## Deployment
 

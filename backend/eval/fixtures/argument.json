@@ -1,0 +1,10 @@
+{
+  "name": "argument",
+  "transcript": [
+    {"role": "assistant", "content": "How did today treat you?"},
+    {"role": "user", "content": "not great, I got into it with a coworker who took credit for my work in the meeting"},
+    {"role": "assistant", "content": "That sounds infuriating. What happened?"},
+    {"role": "user", "content": "I was so angry, he just sat there and let everyone praise him for something I did"}
+  ],
+  "expected_labels": ["anger"]
+}

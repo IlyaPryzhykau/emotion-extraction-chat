@@ -1,0 +1,10 @@
+{
+  "name": "past_resolved",
+  "transcript": [
+    {"role": "assistant", "content": "How'd today go?"},
+    {"role": "user", "content": "I was a bit annoyed at the standup this morning, but we talked it through and it's totally fine now"},
+    {"role": "assistant", "content": "Glad it sorted out. How's the rest of the day been?"},
+    {"role": "user", "content": "good actually, smooth sailing after that"}
+  ],
+  "expected_labels": []
+}

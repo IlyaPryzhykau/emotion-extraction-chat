@@ -1,0 +1,10 @@
+{
+  "name": "frustration_not_anger",
+  "transcript": [
+    {"role": "assistant", "content": "How was your afternoon?"},
+    {"role": "user", "content": "ugh, spent the whole thing trying to get the deploy to work and it just keeps failing"},
+    {"role": "assistant", "content": "That sounds maddening. What's going wrong?"},
+    {"role": "user", "content": "no idea, I've tried everything and I just can't crack it"}
+  ],
+  "expected_labels": ["frustration"]
+}

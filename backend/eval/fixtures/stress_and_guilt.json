@@ -1,0 +1,10 @@
+{
+  "name": "stress_and_guilt",
+  "transcript": [
+    {"role": "assistant", "content": "How was your day?"},
+    {"role": "user", "content": "completely swamped, I've got three deadlines stacked up and no room to breathe"},
+    {"role": "assistant", "content": "That's a heavy load. How are you holding up?"},
+    {"role": "user", "content": "barely. and on top of it I feel awful that I missed my mom's birthday call again because of work"}
+  ],
+  "expected_labels": ["stress/overwhelm", "guilt"]
+}
