@@ -32,6 +32,9 @@ def stream_chat(messages: list[ChatMessage], model: str | None = None) -> Iterat
         stream=True,
     )
     for chunk in stream:
+        # Some chunks (e.g. a trailing usage-only chunk) carry no choices.
+        if not chunk.choices:
+            continue
         delta = chunk.choices[0].delta.content
         if delta:
             yield delta
