@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     chat_model: str = "gpt-5.4-mini"
     # Strong model: used once per session for the authoritative extraction.
     extraction_model: str = "gpt-5.5"
+    # Drop extracted findings below this confidence — a restraint lever against
+    # over-attribution (the main failure mode for LLM emotion extraction).
+    extraction_min_confidence: float = 0.5
 
     # MUST be overridden in production; used to sign the session cookie.
     session_secret: str = "dev-only-insecure-secret-change-me"

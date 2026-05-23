@@ -14,13 +14,18 @@ from openai import OpenAIError
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from app.api.schemas import ConversationDetail, ConversationOut, MessageCreate
+from app.api.schemas import (
+    ConversationDetail,
+    ConversationOut,
+    EmotionOut,
+    MessageCreate,
+)
 from app.core.config import settings
 from app.db.base import get_db
 from app.db.enums import ConversationStatus, MessageRole
 from app.db.models import User
 from app.llm.client import stream_chat
-from app.services import conversation_service
+from app.services import conversation_service, emotion_service
 
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
 
@@ -121,3 +126,49 @@ def post_message(
         yield _sse({"done": True, "message_id": str(assistant.id)})
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+@router.post("/{conversation_id}/analyze", response_model=list[EmotionOut])
+def analyze_conversation(
+    conversation_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[EmotionOut]:
+    """End the conversation and run the one-shot emotion analysis over it."""
+    conversation = conversation_service.get_conversation(db, user, conversation_id)
+    if conversation is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found"
+        )
+    if conversation.status is not ConversationStatus.ACTIVE:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This conversation has already been analyzed.",
+        )
+    if conversation_service.count_user_turns(db, conversation) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="There's nothing to analyze yet — say something first.",
+        )
+    try:
+        return emotion_service.analyze_conversation(db, conversation)
+    except (OpenAIError, RuntimeError):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Analysis is unavailable right now; please try again.",
+        )
+
+
+@router.get("/{conversation_id}/report", response_model=list[EmotionOut])
+def get_report(
+    conversation_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[EmotionOut]:
+    """Return the stored emotion findings for a conversation (empty if none)."""
+    conversation = conversation_service.get_conversation(db, user, conversation_id)
+    if conversation is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found"
+        )
+    return emotion_service.list_emotions(db, conversation)
