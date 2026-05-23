@@ -20,7 +20,7 @@ negativity, and a separate analyst pass turns the transcript into the report. Se
 - [x] UUID keys + Alembic migrations
 - [x] Dockerized dev/prod stacks (db + app)
 - [x] Auth (signup/login/logout, session cookie) + tests
-- [ ] Chat with streaming + conversationalist
+- [x] Chat: conversations + streaming (SSE) conversationalist + tests
 - [ ] End-of-session analysis + emotion report
 - [ ] Evaluation harness
 - [ ] Frontend (login / chat / report / history)
