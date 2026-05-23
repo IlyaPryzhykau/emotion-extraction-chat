@@ -1,0 +1,10 @@
+{
+  "name": "anxiety_not_fear",
+  "transcript": [
+    {"role": "assistant", "content": "How have you been today?"},
+    {"role": "user", "content": "a bit on edge all day, this low-level worry about everything that I can't really pin down"},
+    {"role": "assistant", "content": "That restless feeling sounds draining. Is it tied to anything in particular?"},
+    {"role": "user", "content": "that's the thing, nothing specific, just a vague unease about how things might go"}
+  ],
+  "expected_labels": ["anxiety"]
+}

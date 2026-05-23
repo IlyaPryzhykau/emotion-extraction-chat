@@ -1,0 +1,10 @@
+{
+  "name": "physical_tired",
+  "transcript": [
+    {"role": "assistant", "content": "How are you doing this evening?"},
+    {"role": "user", "content": "dead tired honestly, my legs are killing me after that long hike"},
+    {"role": "assistant", "content": "Sounds like quite a trek. Was it a good one?"},
+    {"role": "user", "content": "yeah it was great, the good kind of tired"}
+  ],
+  "expected_labels": []
+}

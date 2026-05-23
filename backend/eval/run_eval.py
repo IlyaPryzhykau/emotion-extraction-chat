@@ -85,6 +85,30 @@ def _ratio(numerator: int, denominator: int) -> float:
     return numerator / denominator if denominator else 1.0
 
 
+def _f1(precision: float, recall: float) -> float:
+    """Harmonic mean of precision and recall (0.0 when both are 0)."""
+    return 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+
+
+def _macro_f1(results: list[FixtureResult]) -> float:
+    """Mean per-label F1 over every label seen in expected or predicted.
+
+    Macro (unlike micro) weights each label equally, so a rare label the model
+    handles badly isn't hidden by common ones — and a spuriously predicted label
+    scores 0, dragging the average down.
+    """
+    labels = sorted({label for r in results for label in r.expected | r.predicted})
+    if not labels:
+        return 1.0
+    scores = []
+    for label in labels:
+        tp = sum(label in r.predicted and label in r.expected for r in results)
+        fp = sum(label in r.predicted and label not in r.expected for r in results)
+        fn = sum(label in r.expected and label not in r.predicted for r in results)
+        scores.append(_f1(_ratio(tp, tp + fp), _ratio(tp, tp + fn)))
+    return sum(scores) / len(scores)
+
+
 def main() -> None:
     """Evaluate all fixtures and print per-fixture rows plus aggregate metrics."""
     if not settings.openai_api_key:
@@ -93,28 +117,35 @@ def main() -> None:
     results = [_evaluate(f) for f in _load_fixtures()]
 
     tp = fp = fn = grounded = total = 0
-    print(f"{'fixture':<18}{'expected':<22}{'predicted':<22}{'grounded':>9}")
-    print("-" * 71)
+    empties = correct_empties = 0
+    print(f"{'fixture':<28}{'expected':<24}{'predicted':<24}{'grounded':>9}  ok")
+    print("-" * 92)
     for r in results:
         tp += len(r.predicted & r.expected)
         fp += len(r.predicted - r.expected)
         fn += len(r.expected - r.predicted)
         grounded += r.findings_grounded
         total += r.findings_total
+        if not r.expected:
+            empties += 1
+            correct_empties += not r.predicted
+        exact = "✓" if r.predicted == r.expected else "·"
         print(
-            f"{r.name:<18}"
-            f"{', '.join(sorted(r.expected)) or '—':<22}"
-            f"{', '.join(sorted(r.predicted)) or '—':<22}"
-            f"{f'{r.findings_grounded}/{r.findings_total}':>9}"
+            f"{r.name:<28}"
+            f"{', '.join(sorted(r.expected)) or '—':<24}"
+            f"{', '.join(sorted(r.predicted)) or '—':<24}"
+            f"{f'{r.findings_grounded}/{r.findings_total}':>9}  {exact}"
         )
 
-    print("-" * 71)
+    precision, recall = _ratio(tp, tp + fp), _ratio(tp, tp + fn)
+    print("-" * 92)
     print(
-        f"label precision: {_ratio(tp, tp + fp):.2f}   "
-        f"recall: {_ratio(tp, tp + fn):.2f}   "
-        f"(tp={tp} fp={fp} fn={fn})"
+        f"labels  micro  P={precision:.2f}  R={recall:.2f}  F1={_f1(precision, recall):.2f}"
+        f"  (tp={tp} fp={fp} fn={fn})"
     )
-    print(f"evidence grounding: {grounded}/{total} verbatim in transcript")
+    print(f"labels  macro  F1={_macro_f1(results):.2f}")
+    print(f"abstention     {correct_empties}/{empties} empty-expected got no findings")
+    print(f"grounding      {grounded}/{total} evidence quotes verbatim in transcript")
 
 
 if __name__ == "__main__":

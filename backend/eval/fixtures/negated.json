@@ -1,0 +1,10 @@
+{
+  "name": "negated",
+  "transcript": [
+    {"role": "assistant", "content": "How was work today?"},
+    {"role": "user", "content": "my boss reorganized my whole project, but honestly I wasn't even bothered by it"},
+    {"role": "assistant", "content": "Oh? How come it didn't get to you?"},
+    {"role": "user", "content": "I'd been wanting a fresh start on it anyway, so it was kind of welcome"}
+  ],
+  "expected_labels": []
+}

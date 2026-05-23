@@ -1,0 +1,10 @@
+{
+  "name": "guilt_not_shame",
+  "transcript": [
+    {"role": "assistant", "content": "How did the evening go?"},
+    {"role": "user", "content": "not my best. I snapped at my kid over nothing and I really shouldn't have"},
+    {"role": "assistant", "content": "Sounds like it's sitting with you. What happened after?"},
+    {"role": "user", "content": "I apologized to him, but I still feel bad about doing it"}
+  ],
+  "expected_labels": ["guilt"]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "media_subject",
+  "transcript": [
+    {"role": "assistant", "content": "How was your evening?"},
+    {"role": "user", "content": "relaxing. watched a documentary about a tragic shipwreck, pretty heavy subject but really well made"},
+    {"role": "assistant", "content": "Sounds like a gripping watch. How are you feeling tonight?"},
+    {"role": "user", "content": "good, nice and chilled out"}
+  ],
+  "expected_labels": []
+}

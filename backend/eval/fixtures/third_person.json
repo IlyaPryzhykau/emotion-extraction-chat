@@ -1,0 +1,10 @@
+{
+  "name": "third_person",
+  "transcript": [
+    {"role": "assistant", "content": "How was your day?"},
+    {"role": "user", "content": "fine for me. my friend was furious at her landlord though, she vented about it for an hour"},
+    {"role": "assistant", "content": "Sounds like she had a lot to get off her chest. And your side of the day?"},
+    {"role": "user", "content": "pretty calm honestly, I just listened"}
+  ],
+  "expected_labels": []
+}
