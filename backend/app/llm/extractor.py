@@ -51,7 +51,7 @@ def _format_transcript(messages: list[Message]) -> str:
 
 def extract_emotions(messages: list[Message]) -> EmotionExtraction:
     """Run the analyst pass over a transcript and return structured findings."""
-    system = f"{EXTRACTOR_SYSTEM}{_taxonomy_block()}"
+    system = f"{EXTRACTOR_SYSTEM}\n{_taxonomy_block()}"
     transcript = _format_transcript(messages)
     return parse_structured(
         messages=[

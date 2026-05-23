@@ -1,7 +1,7 @@
 """ORM models — the data model from PLAN §4.
 
-Four tables: users, conversations, messages, emotions. Every emotion finding is
-grounded in a specific message so nothing is reported without support.
+Four tables: users, conversations, messages, emotions. Every emotion finding
+carries a verbatim ``evidence`` quote as its grounding.
 """
 
 import uuid
@@ -112,14 +112,12 @@ class Message(Base):
 class Emotion(Base):
     """A single negative-emotion finding extracted from a conversation.
 
-    Every finding is grounded: ``evidence`` is a verbatim quote and ``message_id``
-    points at the message it came from, so nothing is reported without support.
+    Each finding is grounded in a verbatim ``evidence`` quote from the transcript
+    (the eval harness separately verifies the quote actually appears there).
 
     Attributes:
         id: Primary key — UUIDv4, generated app-side.
         conversation_id: Conversation the finding came from.
-        message_id: Specific message that evidences the finding; NULL if it reflects
-            the conversation as a whole rather than a single line.
         label: The negative emotion, from the fixed taxonomy.
         intensity: Coarse strength — low / medium / high.
         trigger: Short description of the cause, grounded in the conversation.
@@ -134,9 +132,6 @@ class Emotion(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     conversation_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey(Conversation.id, ondelete="CASCADE"), index=True
-    )
-    message_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey(Message.id, ondelete="SET NULL")
     )
     label: Mapped[EmotionLabel] = mapped_column(pg_enum(EmotionLabel, "emotion_label"))
     intensity: Mapped[Intensity] = mapped_column(pg_enum(Intensity, "emotion_intensity"))
