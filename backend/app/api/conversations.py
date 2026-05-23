@@ -57,8 +57,12 @@ def get_conversation(
 
 
 def _sse(payload: dict[str, object]) -> str:
-    """Format one Server-Sent Event line (JSON-encoded so newlines are safe)."""
-    return f"data: {json.dumps(payload)}\n\n"
+    """Format one Server-Sent Event line (JSON-encoded so newlines are safe).
+
+    ``ensure_ascii=False`` keeps non-ASCII (emoji, accents) readable UTF-8 in the
+    stream rather than ``\\uXXXX`` escapes; the response is served as utf-8.
+    """
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 
 @router.post("/{conversation_id}/messages")
