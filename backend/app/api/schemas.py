@@ -1,4 +1,4 @@
-"""Pydantic request/response models for the auth API.
+"""Pydantic request/response models for the API (auth and conversations).
 
 Kept separate from the ORM models: these define the HTTP contract (and input
 validation) the frontend mirrors, while ``db/models.py`` defines persistence.
@@ -9,6 +9,9 @@ from datetime import datetime
 from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, Field
+
+from app.core.config import settings
+from app.db.enums import ConversationStatus, MessageRole
 
 
 def _normalize_email(value: str) -> str:
@@ -46,3 +49,37 @@ class UserOut(BaseModel):
     id: uuid.UUID
     email: str
     created_at: datetime
+
+
+class MessageOut(BaseModel):
+    """A single conversation turn."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    role: MessageRole
+    content: str
+    created_at: datetime
+
+
+class ConversationOut(BaseModel):
+    """Summary of a conversation, without its messages (for lists)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    status: ConversationStatus
+    started_at: datetime
+    ended_at: datetime | None
+
+
+class ConversationDetail(ConversationOut):
+    """A conversation together with its full message history."""
+
+    messages: list[MessageOut]
+
+
+class MessageCreate(BaseModel):
+    """Payload to post a user message into a conversation."""
+
+    content: str = Field(min_length=1, max_length=settings.max_message_chars)

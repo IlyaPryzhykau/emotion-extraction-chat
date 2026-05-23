@@ -6,10 +6,11 @@ run at container start), not by the app, so startup performs no DDL.
 
 from fastapi import FastAPI
 
-from app.api import auth
+from app.api import auth, conversations
 
 app = FastAPI(title="Conversational Emotion Extraction")
 app.include_router(auth.router)
+app.include_router(conversations.router)
 
 
 @app.get("/api/health")
