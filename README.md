@@ -24,7 +24,7 @@ negativity, and a separate analyst pass turns the transcript into the report. Se
 - [x] End-of-session analysis: structured grounded emotion extraction + tests
 - [x] Evaluation harness (grounding check + label precision/recall on fixtures)
 - [x] Frontend (login / chat / report / history)
-- [ ] Public deployment
+- [x] Public deployment (Docker Compose on a cloud VM, HTTPS via sslip.io)
 
 ## Stack
 
@@ -34,7 +34,7 @@ negativity, and a separate analyst pass turns the transcript into the report. Se
   session for the analysis (IDs are configurable via env)
 - **Frontend:** React + TypeScript (Vite)
 - **Infra:** Docker Compose; in prod, Caddy serves the built frontend and proxies
-  the API, with HTTPS via `sslip.io` on a Hetzner VPS
+  the API, with HTTPS via `sslip.io` on a cloud VM (AWS EC2 free tier)
 
 ## Repo layout
 
@@ -43,6 +43,32 @@ backend/      FastAPI app, SQLAlchemy models, Alembic migrations, eval harness
 deploy/       docker-compose.yml (dev) + docker-compose.prod.yml + Caddy
 frontend/     React + TypeScript (Vite) single-page app
 ```
+
+## Architecture
+
+```
+                  ┌────────────────────────────────────────────┐
+   browser ──────►│ Caddy (HTTPS via Let's Encrypt + sslip.io)  │
+                  │   • serves the built React SPA              │
+                  │   • reverse-proxies /api/* (SSE-friendly) ──┼──► FastAPI (app)
+                  └─────────────────────────────────────────────┘        │
+                                                                          ├─► Postgres
+                                                                          └─► OpenAI
+```
+
+**Two separated LLM roles** are the heart of the system:
+
+- **Conversationalist** (cheap model, streamed): a warm listener that helps you talk
+  through your day. It is *never* told the app extracts emotions — no hunting, no
+  labelling, no clinical framing. Grounded in reflective listening / motivational
+  interviewing / the Day Reconstruction Method.
+- **Analyst** (strong model, once on "End & analyze"): reads the full raw transcript
+  and returns structured negative-emotion findings — label (fixed taxonomy),
+  intensity, trigger, a **verbatim evidence quote**, and confidence. Conservative
+  (an empty result is valid), with a confidence floor.
+
+Emotion extraction is a *silent byproduct* of a conversation worth having on its
+own; nothing about emotions is shown during the chat.
 
 ## Running locally
 
@@ -156,9 +182,50 @@ human-labeled set is a "with another week" item.
 
 ## Deployment
 
-_(coming)_ Public HTTPS URL on a Hetzner VPS (Caddy + `sslip.io`).
+**Live demo:** **https://16-171-160-96.sslip.io** · sign up with any email + password
+(it's open), then start a conversation.
 
-## Assumptions & "with another week"
+Deployed on a cloud VM (AWS EC2 free tier) with Docker Compose: Caddy serves the
+built SPA and reverse-proxies `/api`, with automatic HTTPS via Let's Encrypt using
+an `sslip.io` hostname (no domain to buy). Reproducible on any fresh VM:
 
-Decisions made under ambiguity, and what we'd do with more time, are documented in
-`ASSUMPTIONS.md`.
+```bash
+git clone <repo> && cd emotion-extraction-chat
+cp backend/.env.example backend/.env
+#   set OPENAI_API_KEY, a strong SESSION_SECRET, and COOKIE_SECURE=true
+cd deploy
+SITE_ADDRESS=<server-ip-with-dashes>.sslip.io \
+  docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Migrations run on container start; the app is then live at
+`https://<server-ip-with-dashes>.sslip.io`.
+
+## Assumptions (decisions under ambiguity)
+
+The brief is deliberately underspecified; full rationale is in `ASSUMPTIONS.md`.
+The decisions that shaped this build:
+
+- **Who it serves.** Two interests pull apart — the person wants to be heard, the
+  business wants structured negative emotions. Resolved by treating extraction as a
+  *silent byproduct* of a conversation worth having on its own.
+- **"Negative emotion" = a fixed 10-label taxonomy** — closed and *evaluable*,
+  rather than guessing the "right" open-ended definition.
+- **Analysis runs once at end of session** over the raw transcript, grounded in a
+  verbatim quote, conservative, with a confidence floor.
+- **Minimal auth** (email + password, signed httpOnly cookie) — no recovery / JWT;
+  out of scope for a 2-day build where auth isn't scored.
+- **Hosted on a cloud VM via Compose** (AWS EC2 free tier), HTTPS through Caddy +
+  `sslip.io` (no domain).
+
+## With another week
+
+- A live / in-session emotion read-out — done in a way that doesn't make the user
+  feel observed (deliberately cut for that reason).
+- A cross-session trends dashboard — the real product value of keeping history.
+- A prose "mirror of your day" summary alongside the structured findings.
+- A psychologist-labeled eval set with borderline cases, plus per-message extraction
+  and an emotion timeline within a session.
+- Companion personality types that adapt to the user (or read the mood early and
+  switch).
+- Fuller auth: JWT / Google sign-in, password change, and "log out everywhere."
