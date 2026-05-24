@@ -95,11 +95,13 @@ the living record; its content is mirrored into the README on submission.
 
 ## Infrastructure
 
-- **Hosted on an existing Hetzner VPS**, Docker Compose (caddy + app + db), HTTPS via
-  Caddy + `sslip.io` (no domain purchase).
-  *Why:* zero hosting cost on hardware we already have, full end-to-end ownership of
-  the deploy. For production we would use a major cloud (GCP/AWS) — a "with another
-  week" item.
+- **Hosted on a single cloud VM (AWS EC2 free tier) via Docker Compose** (caddy + app
+  + db), HTTPS via Caddy + `sslip.io` (no domain purchase).
+  *Why:* one small VM running our self-contained Compose stack is the simplest thing
+  that gives full end-to-end ownership of the deploy at ~zero cost; `sslip.io` avoids
+  buying a domain while still getting a real Let's Encrypt cert. A managed setup
+  (container service + managed Postgres) would be the production step — a "with
+  another week" item.
 
 - **Postgres**, not SQLite. App tables/enums live in a dedicated `app` schema, not
   `public`.
