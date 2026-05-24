@@ -23,7 +23,7 @@ negativity, and a separate analyst pass turns the transcript into the report. Se
 - [x] Chat: conversations + streaming (SSE) conversationalist + tests
 - [x] End-of-session analysis: structured grounded emotion extraction + tests
 - [x] Evaluation harness (grounding check + label precision/recall on fixtures)
-- [ ] Frontend (login / chat / report / history)
+- [x] Frontend (login / chat / report / history)
 - [ ] Public deployment
 
 ## Stack
@@ -32,15 +32,16 @@ negativity, and a separate analyst pass turns the transcript into the report. Se
 - **DB:** PostgreSQL (dedicated `emotion_extraction_chat` schema), Alembic migrations
 - **LLM:** OpenAI — a fast/cheap model for the conversation, a strong model once per
   session for the analysis (IDs are configurable via env)
-- **Frontend:** React + TypeScript (Vite) _(coming)_
-- **Infra:** Docker Compose; Caddy + frontend on a Hetzner VPS _(coming)_
+- **Frontend:** React + TypeScript (Vite)
+- **Infra:** Docker Compose; in prod, Caddy serves the built frontend and proxies
+  the API, with HTTPS via `sslip.io` on a Hetzner VPS
 
 ## Repo layout
 
 ```
 backend/      FastAPI app, SQLAlchemy models, Alembic migrations, eval harness
-deploy/       docker-compose.yml (dev) + docker-compose.prod.yml
-frontend/     React + TypeScript (coming)
+deploy/       docker-compose.yml (dev) + docker-compose.prod.yml + Caddy
+frontend/     React + TypeScript (Vite) single-page app
 ```
 
 ## Running locally
@@ -57,23 +58,24 @@ cd backend && cp .env.example .env   # then fill in OPENAI_API_KEY
 docker compose up --build
 ```
 
-Source is bind-mounted and uvicorn runs with `--reload`, so code changes apply
-without a rebuild. Migrations run automatically at startup.
+This brings up the whole stack: the **frontend at http://localhost:5173**, the API
+at http://localhost:8000, and Postgres on 5439. Both frontend and backend source
+are bind-mounted with hot reload, so code changes apply without a rebuild.
+Migrations run automatically at startup.
 
-**Prod-like (code baked into the image)** — from `deploy/`:
+**Prod-like (code baked into the images)** — from `deploy/`:
 
 ```bash
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-The dev and prod stacks are two independent, self-contained files (no overlay), so
-the prod run can never accidentally pick up dev settings.
+Here Caddy serves the built frontend and proxies `/api` to the backend on one
+origin (http://localhost). The dev and prod stacks are two independent,
+self-contained files (no overlay), so the prod run can never accidentally pick up
+dev settings.
 
-**Check it's up:**
-
-```bash
-curl http://localhost:8000/api/health     # -> {"status":"ok"}
-```
+**Check it's up:** open http://localhost:5173 (dev) or http://localhost (prod).
+API health: `curl http://localhost:8000/api/health` (dev).
 
 **Inspect the database** (dev only) — Postgres is published on host port **5439**:
 
