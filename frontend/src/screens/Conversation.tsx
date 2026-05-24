@@ -55,29 +55,31 @@ function Chat({ detail, onAnalyzed }: { detail: ConversationDetail; onAnalyzed: 
     setSending(true);
     setBubbles((b) => [...b, { role: "user", content }, { role: "assistant", content: "", streaming: true }]);
 
-    await streamMessage(detail.id, content, {
-      onDelta: (text) =>
-        setBubbles((b) => {
-          const next = [...b];
-          const last = next[next.length - 1];
-          next[next.length - 1] = { ...last, content: last.content + text };
-          return next;
-        }),
-      onDone: () => {
-        setBubbles((b) => {
-          const next = [...b];
-          next[next.length - 1] = { ...next[next.length - 1], streaming: false };
-          return next;
-        });
-        setSending(false);
-      },
-      onError: (msg) => {
-        setError(msg);
-        setBubbles((b) => b.slice(0, -1)); // drop the empty assistant bubble
-        setSending(false);
-      },
-    });
-    inputRef.current?.focus(); // keep the cursor in the composer for the next line
+    try {
+      await streamMessage(detail.id, content, {
+        onDelta: (text) =>
+          setBubbles((b) => {
+            const next = [...b];
+            const last = next[next.length - 1];
+            next[next.length - 1] = { ...last, content: last.content + text };
+            return next;
+          }),
+        onDone: () =>
+          setBubbles((b) => {
+            const next = [...b];
+            next[next.length - 1] = { ...next[next.length - 1], streaming: false };
+            return next;
+          }),
+        onError: (msg) => {
+          setError(msg);
+          setBubbles((b) => b.slice(0, -1)); // drop the empty assistant bubble
+        },
+      });
+    } finally {
+      // Always re-enable the composer and refocus, even if the stream throws.
+      setSending(false);
+      inputRef.current?.focus();
+    }
   };
 
   const endSession = async () => {
