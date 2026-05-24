@@ -34,7 +34,7 @@ negativity, and a separate analyst pass turns the transcript into the report. Se
   session for the analysis (IDs are configurable via env)
 - **Frontend:** React + TypeScript (Vite)
 - **Infra:** Docker Compose; in prod, Caddy serves the built frontend and proxies
-  the API, with HTTPS via `sslip.io` on a Hetzner VPS
+  the API, with HTTPS via `sslip.io` on a cloud VM (AWS EC2 free tier)
 
 ## Repo layout
 
