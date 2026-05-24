@@ -223,7 +223,9 @@ The decisions that shaped this build:
 - A live / in-session emotion read-out — done in a way that doesn't make the user
   feel observed (deliberately cut for that reason).
 - A cross-session trends dashboard — the real product value of keeping history.
-- A larger, human-labeled eval set with borderline cases and richer metrics.
 - A prose "mirror of your day" summary alongside the structured findings.
-- Production hardening: real auth (JWT + refresh, password recovery), and moving
-  infra to a major cloud (GCP/AWS).
+- A psychologist-labeled eval set with borderline cases, plus per-message extraction
+  and an emotion timeline within a session.
+- Companion personality types that adapt to the user (or read the mood early and
+  switch).
+- Fuller auth: JWT / Google sign-in, password change, and "log out everywhere."

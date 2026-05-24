@@ -1,125 +1,116 @@
 # Assumptions
 
-The brief is deliberately underspecified. Rather than asking the client to fill the
-gaps, we made these decisions and defend them here (and on the call). This file is
-the living record; its content is mirrored into the README on submission.
+The brief is deliberately underspecified, so these are the decisions I made and
+why — the kind of thing I'd defend on the call rather than asking the client to
+fill the gaps.
 
-## Product framing
+## Context (not given in the brief)
 
-- **Who the app serves.** The app serves *two* parties whose interests pull apart:
-  the human (wants to be heard) and the business (wants structured negative
-  emotions). We resolved this by treating extraction as a **silent byproduct of a
-  conversation worth having on its own**. The end report is framed first as an
-  honest mirror for the user, second as a business artifact.
-  *Why:* an interrogation-style app produces guarded users and junk data; a warm
-  listener produces real signal. This is the central judgment call.
+I treated the app as an **end-of-day journal**: you talk through your day and get a
+wrap-up, while the product (or a third party) needs to know which **negative
+emotions** you went through. So it serves two parties at once — the person wants to
+be heard, the business wants structured emotions. I resolved that by making
+extraction a **silent byproduct of a conversation worth having on its own**: the
+companion just listens, and the analysis happens separately afterward.
 
-- **"Negative emotion" = a fixed taxonomy of 10 labels:** sadness, anxiety, anger,
-  frustration, fear, guilt, shame, loneliness, disappointment, stress/overwhelm.
-  *Why:* a closed set is defensible and *evaluable* (precision/recall) where
-  open-ended labels are not. The brief explicitly says there is no "right"
-  definition, so we picked a clear, defensible one.
+The conversation is **English-only** (per the brief): even if the user writes in
+another language, the companion gently keeps replying in English.
 
-## Extraction
+## Stack, and why
 
-- **Authoritative extraction happens once, at end of session**, over the full raw
-  transcript — not per message.
-  *Why:* bounded cost, full context, simplest correct thing. Per-message is a
-  "with another week" item.
+- **Backend:** Python + FastAPI + Postgres — my main stack.
+- **Frontend:** React + TypeScript — not my home turf, but I got there with Claude.
+- **LLM:** OpenAI `gpt-5.4-mini` for the conversation (cheap/fast), `gpt-5.5` once at
+  the end for the analysis.
 
-- **No summarization before extraction.** The extractor reads raw messages.
-  *Why:* summarization discards the exact wording and tone that carry the emotional
-  signal we are trying to extract.
+## What I built in 2 days
 
-- **No live / mid-conversation emotion read-out, and no `source` column.** Emotions
-  are produced once, in the end-of-session report; there is no provisional read-out
-  while the user talks, so every stored finding is authoritative by construction.
-  *Why:* a running read-out makes the user feel scored as they speak (contradicts the
-  framing), has worse quality on partial context, and costs extra per-turn calls.
-  Since only end-of-session findings exist, a `source` discriminator column would have
-  a single value — so we don't add one (YAGNI/KISS). A future read-out is a "with
-  another week" item and would introduce the column then, when it earns its place.
+A simple app that holds a conversation and, once you end it, analyzes the whole
+transcript and extracts the negative emotions you expressed during the day.
 
-- **Every extracted finding must be grounded** in a verbatim quote, and the eval
-  harness rejects evidence that does not appear in the transcript. We don't store a
-  message-id link: it would be an always-NULL column (we don't search the transcript
-  to resolve one in the write path), so by YAGNI it isn't added — the quote itself is
-  the grounding.
-  *Why:* "approximate correctness is not acceptable" → no ungrounded/hallucinated
-  emotions.
+## Data model (4 entities)
 
-## Conversation flow & cost
+- **User** — identity / account.
+- **Conversation** — one session, owned by a user.
+- **Message** — a turn, belongs to a conversation.
+- **Emotion** — a finding, belongs to an analyzed conversation.
 
-- **The user ends the session** ("End & analyze") whenever they want.
-- **Soft wind-down ~25–30 user turns**, **hard cap ~60 user turns**, **~2000 char
-  per-message limit**.
-  *Why:* let people actually vent without an abrupt cut, while capping runaway cost
-  and abuse. Running on personal API credits is itself a constraint to respect.
+## The conversation
 
-- **Cheap model for the conversation, strong model once for analysis.** Model IDs
-  are env vars (`CHAT_MODEL`, `EXTRACTION_MODEL`); `scripts/list_models.py` confirms
-  what is actually available so we never ship a stale model string.
+- A plain **listener** prompt: it doesn't fish for emotions or hint at them — it
+  just listens, so the data isn't biased by leading questions.
+- Up to ~60 user turns; after ~28 a nudge is mixed into the prompt to gently steer
+  toward wrapping up. Feels like enough room to vent, but this deserves real research.
+- **Safety:** if someone signals crisis / self-harm, the companion gently points
+  them to someone they trust or a professional (no hardcoded numbers — geo-agnostic).
+- **Cost:** the cheap model drives the chat, the strong model runs only once for the
+  analysis (this is on personal API credits).
 
-## Auth & scope
+## The analysis
 
-- **Minimal auth:** signup/login/logout, bcrypt hash, one signed httpOnly session
-  cookie with an absolute 14-day expiry. **No refresh/rotation, no password
-  recovery, no email verification, no OAuth/2FA.**
-  *Why:* none of this earns its place in a 2-day build where auth is explicitly not
-  scored — a single signed session is enough to scope data per user and demo the
-  product. All of it (refresh tokens / sliding sessions, recovery, verification,
-  OAuth) is straightforward to add and is a "with another week" item; we left it out
-  rather than half-build it.
+- A **composite prompt**: (1) analysis instructions, (2) the emotion list with
+  descriptions for the model. The request also carries a **response schema**
+  (structured output) so I can parse it straight into the DB.
+- Each finding is **grounded in a verbatim quote** from the user, which guards
+  against hallucinated emotions; the eval harness rejects any evidence that isn't in
+  the transcript.
+- **Conservative:** an empty result is valid (an okay day), and a confidence floor
+  drops weak guesses — over-attribution is the main failure mode for this kind of
+  extraction.
+- I didn't deep-research the psychology / interviewing side here — that needs more
+  time.
 
-- **Login is constant-time w.r.t. account existence** (a missing email still runs a
-  bcrypt verify against a dummy hash), so timing can't be used to enumerate accounts.
-  **Signup still reveals existence** (a taken email returns 409) — closing that needs
-  the "always respond the same, verify via email" flow, which requires email
-  verification (cut). We accept the signup leak deliberately; the real fix ships with
-  verification — a "with another week" item.
+## Emotion taxonomy
 
-- **Session via signed httpOnly cookie, not JWT/Bearer.**
-  *Why:* the frontend and API sit behind one Caddy on a single origin, so the browser
-  carries the cookie automatically and JS can't read it (XSS-resistant); `SameSite=Lax`
-  covers the common CSRF case. A Bearer token in the body/localStorage would be more
-  code and weaker (XSS-stealable) for no benefit at one origin. JWT earns its place
-  with non-browser clients or stateless multi-service auth — not our setup.
-  *With another week:* JWT + refresh/rotation (sliding sessions), and a
-  change-password endpoint with "log out everywhere" via a per-user `token_version`
-  (security stamp) checked on each request — the clean way to revoke our otherwise
-  stateless sessions.
+A fixed **enum of 10 negative emotions** with short descriptions for the model, so
+there's no drift in how it labels. A closed set is also *evaluable* (precision /
+recall) where open-ended labels aren't. Model IDs live in env, and
+`scripts/list_models.py` confirms what the key can actually use.
 
-- **Multi-user** with per-user session history.
-  *Why:* shows schema/scoping thinking and makes the trends story (the real product
-  value) possible.
+## Auth
+
+Simple: a **signed session cookie kept ~14 days** in the browser. I didn't build
+JWT / OAuth — auth isn't the focus of this task. The cookie is httpOnly (JS can't
+read it), every query is scoped per user (someone else's conversation returns 404),
+and the login check is constant-time so you can't probe which emails are registered.
+
+## Why SSE for the chat
+
+The reply streams over **Server-Sent Events** — the server pushes tokens over one
+long-lived HTTP response, so the text appears as it's generated. I picked SSE over
+WebSocket because the flow is one-directional (server → client), it's plain HTTP
+(passes cleanly through Caddy, has built-in reconnect), and it's simpler than a
+bidirectional socket we don't need. On short chats the latency win is small — it's
+mostly UX polish — but it's the right primitive and cheap. (The frontend reads it
+via `fetch` + `ReadableStream`, since native `EventSource` can't POST a body.)
+
+## Tests / eval
+
+There are eval fixtures for the analysis prompt and the model's output — currently
+**F1 ≈ 0.95**, but that's really just "it basically works." I'd want a psychologist
+to write more interesting, borderline cases. Backend tests run against a real
+Postgres with per-test transaction rollback; the LLM is mocked.
 
 ## Infrastructure
 
-- **Hosted on a single cloud VM (AWS EC2 free tier) via Docker Compose** (caddy + app
-  + db), HTTPS via Caddy + `sslip.io` (no domain purchase).
-  *Why:* one small VM running our self-contained Compose stack is the simplest thing
-  that gives full end-to-end ownership of the deploy at ~zero cost; `sslip.io` avoids
-  buying a domain while still getting a real Let's Encrypt cert. A managed setup
-  (container service + managed Postgres) would be the production step — a "with
-  another week" item.
+- **UUIDv4** primary keys, so IDs exposed in URLs aren't enumerable.
+- A dedicated Postgres schema (`emotion_extraction_chat`), not `public`.
+- Schema managed by **Alembic** migrations, not `create_all` at startup.
+- Deployed on **AWS EC2 (free tier) with Docker Compose + Caddy**; HTTPS via
+  `sslip.io`, so no domain to buy.
 
-- **Postgres**, not SQLite. App tables/enums live in a dedicated
-  `emotion_extraction_chat` schema, not `public`.
-  *Why:* matches a realistic production stack and the trends/history use case; a
-  dedicated schema keeps ownership explicit.
+## With another week
 
-- **UUIDv4 primary keys, generated app-side** (native Postgres `UUID` type), not
-  auto-increment integers.
-  *Why:* IDs appear in URLs, so non-enumerable keys are a sound production default;
-  per-user authorization already blocks cross-user access, so this is
-  defense-in-depth, not the only guard. Chose v4 for zero dependencies (stdlib
-  `uuid.uuid4`); UUIDv7 (time-ordered, better B-tree index locality) is the
-  refinement once write volume matters — a "with another week" item.
-
-- **Schema is managed by Alembic migrations**, not by the app at startup. Migrations
-  run as an explicit step (`alembic upgrade head`) before the app serves traffic; the
-  app process itself performs no DDL.
-  *Why:* versioned, reviewable schema changes and a clean upgrade/downgrade path —
-  the production-correct approach, and it sidesteps any startup race if the backend
-  is ever scaled to multiple replicas. (The downgrade also drops the ENUM types,
-  which Postgres otherwise leaves behind after a table drop.)
+- **Auth:** JWT or Google sign-in, proper logout, change password, and "kill tokens
+  on all devices."
+- **Companion:** research and test the prompt more; maybe several **personality
+  types** — adapt or auto-pick from past conversations, or read the mood from the
+  first messages and switch.
+- **Analysis:** improve the prompt and the eval cases for a more honest read on the
+  model.
+- **UI:** polish.
+- **Cross-session trends** — a "what's been weighing on you this week" dashboard,
+  which is the real value of keeping history.
+- A prose **"mirror of your day"** summary alongside the structured findings.
+- A **psychologist-labeled eval set**, plus per-message extraction with an emotion
+  timeline within a session.
