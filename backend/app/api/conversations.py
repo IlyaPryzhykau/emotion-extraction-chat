@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.api.schemas import (
     ConversationDetail,
+    ConversationListItem,
     ConversationOut,
     EmotionOut,
     MessageCreate,
@@ -30,20 +31,36 @@ from app.services import conversation_service, emotion_service
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
 
 
-@router.post("", response_model=ConversationOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ConversationListItem, status_code=status.HTTP_201_CREATED)
 def create_conversation(
     user: User = Depends(get_current_user), db: Session = Depends(get_db)
-) -> ConversationOut:
-    """Start a new conversation."""
-    return conversation_service.create_conversation(db, user)
+) -> ConversationListItem:
+    """Start a new conversation (no findings yet, so labels are empty)."""
+    conversation = conversation_service.create_conversation(db, user)
+    return ConversationListItem(
+        id=conversation.id,
+        status=conversation.status,
+        started_at=conversation.started_at,
+        ended_at=conversation.ended_at,
+        labels=[],
+    )
 
 
-@router.get("", response_model=list[ConversationOut])
+@router.get("", response_model=list[ConversationListItem])
 def list_conversations(
     user: User = Depends(get_current_user), db: Session = Depends(get_db)
-) -> list[ConversationOut]:
-    """List the current user's conversations, most recent first."""
-    return conversation_service.list_conversations(db, user)
+) -> list[ConversationListItem]:
+    """List the current user's conversations (most recent first) with their labels."""
+    return [
+        ConversationListItem(
+            id=conversation.id,
+            status=conversation.status,
+            started_at=conversation.started_at,
+            ended_at=conversation.ended_at,
+            labels=labels,
+        )
+        for conversation, labels in conversation_service.list_conversations_with_labels(db, user)
+    ]
 
 
 @router.get("/{conversation_id}", response_model=ConversationDetail)

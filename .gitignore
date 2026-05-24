@@ -26,3 +26,6 @@ REVIEW.md
 .claude/
 .idea/
 .vscode/
+
+# TS build info
+*.tsbuildinfo

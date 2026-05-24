@@ -1,0 +1,11 @@
+# Keep the (repo-root) build context for deploy/web.Dockerfile small.
+.git
+**/node_modules
+**/.venv
+**/__pycache__
+**/dist
+**/*.tsbuildinfo
+.idea
+.vscode
+.claude
+backend/.env

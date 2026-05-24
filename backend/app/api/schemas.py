@@ -74,6 +74,12 @@ class ConversationOut(BaseModel):
     ended_at: datetime | None
 
 
+class ConversationListItem(ConversationOut):
+    """A conversation summary for the history list, with its extracted labels."""
+
+    labels: list[EmotionLabel]
+
+
 class ConversationDetail(ConversationOut):
     """A conversation together with its full message history."""
 

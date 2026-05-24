@@ -1,0 +1,22 @@
+# SITE_ADDRESS controls TLS: ":80" (default) for local prod runs, or a real
+# hostname like "1-2-3-4.sslip.io" on the server, where Caddy gets a Let's
+# Encrypt cert automatically.
+{$SITE_ADDRESS::80} {
+	encode gzip
+
+	# API + streaming -> the backend. flush_interval -1 disables buffering so
+	# Server-Sent Events reach the browser token-by-token.
+	handle /api/* {
+		reverse_proxy app:8000 {
+			flush_interval -1
+		}
+	}
+
+	# Everything else -> the built SPA, with a fallback so client-side routes
+	# (e.g. /c/:id) resolve to index.html.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

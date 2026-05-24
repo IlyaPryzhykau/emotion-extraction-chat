@@ -82,6 +82,19 @@ def test_analyze_persists_findings_drops_low_confidence_and_closes(
     assert len(report) == 1
 
 
+def test_analyzed_conversation_exposes_labels_in_list(
+    client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _signup(client)
+    conv_id = _conversation_with_message(client, db_session)
+    _mock_extract(monkeypatch, EmotionExtraction(findings=[_finding(0.9)]))
+    client.post(f"/api/conversations/{conv_id}/analyze")
+
+    items = client.get("/api/conversations").json()
+    item = next(i for i in items if i["id"] == conv_id)
+    assert item["labels"] == ["stress/overwhelm"]
+
+
 def test_analyze_with_no_negative_emotions_returns_empty(
     client: TestClient, db_session: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:

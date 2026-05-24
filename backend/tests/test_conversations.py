@@ -23,6 +23,7 @@ def test_create_conversation_starts_active(client: TestClient) -> None:
     body = resp.json()
     assert body["status"] == "active"
     assert body["ended_at"] is None
+    assert body["labels"] == []  # nothing extracted yet
     assert uuid.UUID(body["id"])  # valid UUID
 
 
