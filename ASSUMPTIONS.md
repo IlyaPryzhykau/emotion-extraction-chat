@@ -103,8 +103,8 @@ the living record; its content is mirrored into the README on submission.
   (container service + managed Postgres) would be the production step — a "with
   another week" item.
 
-- **Postgres**, not SQLite. App tables/enums live in a dedicated `app` schema, not
-  `public`.
+- **Postgres**, not SQLite. App tables/enums live in a dedicated
+  `emotion_extraction_chat` schema, not `public`.
   *Why:* matches a realistic production stack and the trends/history use case; a
   dedicated schema keeps ownership explicit.
 
